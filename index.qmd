@@ -1,0 +1,44 @@
+---
+title: "Cartografías de lo social: introducción al análisis de datos espaciales en R"
+subtitle: "Pensamiento Espacial, Data Wrangling y Análisis Exploratorio (EDA) para Investigadores Sociales"
+author: "Cristóbal Ortiz-Vilches (Núcleo Milenio NUMIC)"
+date: today
+page-layout: article
+toc: false
+---
+
+### Descripción del Taller
+
+Este taller introduce a investigadores en el **pensamiento y análisis espacial** utilizando el entorno **R/RStudio**. A lo largo de la sesión, aprovecharemos la georreferenciación de las bases de datos tradicionales para comprender las **geografías de la desigualdad, la inseguridad y la cohesión social**. Mediante un flujo de trabajo práctico y reproducible, aprenderemos a manejar la geolocalización de los datos para así construir **cartografías tanto estáticas como interactivas**.
+
+::: {.callout-note}
+### Articulación Curricular: Preámbulo de *Geovisor-IA*
+Este curso constituye el **primer eslabón formativo** antes de pasar al diseño de plataformas web avanzadas en [**Geovisor-IA**](https://territorio-numic.github.io/geovisor-ia/). Aquí nos concentramos en lo que ocurre **antes** de publicar un visor: cómo se estructuran las geometrías en R (`sf`), cómo seleccionar y filtrar polígonos, y cómo diagnosticar anomalías territoriales reales (manzanas sin habitantes, bordes descalzados, denominadores pequeños o proyecciones incompatibles) mediante el **Análisis Exploratorio de Datos Espaciales (EDA)**.
+:::
+
+<p style="margin-top: 1.4rem; margin-bottom: 1.6rem;">
+  <a href="carto-social_report.qmd" class="btn btn-primary" role="button" style="margin-right: 0.6rem;">📘 Ir al Manual del Taller (`carto-social_report`)</a>
+  <a href="carto-social_slide.qmd" class="btn btn-outline-primary" role="button" target="_blank">🖥️ Abrir Presentación de Cátedra (`carto-social_slide`)</a>
+</p>
+
+---
+
+### Estructura de Contenidos del Taller
+
+Tomando como base conceptual la taxonomía y operatoria del paquete `sf` sistematizada por **Rubén Fernández-Casal (*Estadística Espacial*, Cap. 2: Datos espaciales)** y aplicándola a las **`1.711` manzanas censales** y **`27` barrios oficiales** de la **comuna de Santiago (`CUT 13101`)**, el taller se organiza en cinco módulos:
+
+| Módulo | Eje Formativo | Contenidos Clave |
+| :--- | :--- | :--- |
+| **Módulo 1** | **Pensamiento Espacial y Tipos de Datos Geográficos** | Del `data.frame` sociológico al dato espacial. Datos vectoriales vs. ráster. Taxonomía de procesos espaciales (Fernández-Casal): **procesos regionales/reticulares** (manzanas y barrios), **procesos puntuales** (delitos/equipamientos) y **procesos geoestadísticos** (islas de calor). |
+| **Módulo 2** | **Anatomía del Paquete `sf` y Sistemas de Coordenadas (`CRS`)** | El estándar *Simple Features* (`ISO 19125`): objetos `sf`, columna de lista geométrica `sfc` y geometrías primitivas `sfg` (`POINT`, `POLYGON`, `MULTIPOLYGON`). Coordenadas geodésicas (`EPSG:4326` en grados) vs. proyectadas (`EPSG:32719` UTM 19S en metros). |
+| **Módulo 3** | **Data Wrangling Espacial: Selección, Filtrado y Cruces de Polígonos** | Integración `sf` + `tidyverse`. Selección por atributos (`filter()`) vs. selección geométrica (`st_filter()`, `st_intersects()`, `st_within()`, `st_crop()`, buffers métricos con `st_buffer()`). Cruces espaciales seguros mediante punto interior (`st_point_on_surface()`). |
+| **Módulo 4** | **Análisis Exploratorio de Datos Espaciales (EDA) y Diagnóstico de Anomalías** | Qué mirar cuando recién exploramos una base territorial: **(1) Manzanas sin habitantes (`n_per == 0`)** (`419` manzanas en Santiago correspondientes a parques, oficinas o equipamientos); **(2) Inestabilidad por micro-denominadores**; **(3) Topologías inválidas (`st_is_valid`)**; y **(4) Vecino más cercano (`st_nearest_feature`)**. |
+| **Módulo 5** | **De la Cartografía Estática al Visor Interactivo con Tooltip** | Exploración rápida con `plot.sf()` y mapas estáticos reproducibles con `ggplot2::geom_sf()`. Construcción de cartografías interactivas WebGL (`mapgl`) con **tooltips HTML multicapa** para explorar las geografías de la **desigualdad**, la **inseguridad** y la **cohesión social** en los 27 barrios de Santiago. |
+
+---
+
+### Referencias Fundamentales
+
+- **Fernández-Casal, R.** (2022). *Estadística Espacial con R — Capítulo 2: Datos espaciales*. Disponible en GitHub: [`rubenfcasal/estadistica_espacial/02-datos.Rmd`](https://github.com/rubenfcasal/estadistica_espacial/blob/main/02-datos.Rmd).
+- **Pebesma, E., & Bivand, R.** (2023). *Spatial Data Science: With Applications in R*. Chapman and Hall/CRC.
+- **Lovelace, R., Nowosad, J., & Muenchow, J.** (2024). *Geocomputation with R*. CRC Press.

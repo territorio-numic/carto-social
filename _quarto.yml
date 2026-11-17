@@ -1,0 +1,45 @@
+project:
+  type: website
+  output-dir: docs
+  render:
+    - index.qmd
+    - carto-social_report.qmd
+    - carto-social_slide.qmd
+
+execute:
+  freeze: auto
+
+website:
+  title: "Cartografías de lo Social: Análisis de Datos Espaciales en R"
+  site-url: "https://territorio-numic.github.io/carto-social"
+  repo-url: "https://github.com/territorio-numic/carto-social"
+  search: false
+  page-navigation: true
+  navbar:
+    background: light
+    left:
+      - text: "Inicio"
+        href: index.qmd
+      - text: "Manual del Taller (Reporte)"
+        href: carto-social_report.qmd
+      - text: "Presentación (Slides)"
+        href: carto-social_slide.qmd
+        target: "_blank"
+    right:
+      - text: "Curso 2: Geovisor-IA →"
+        href: https://territorio-numic.github.io/geovisor-ia/
+        target: "_blank"
+      - icon: github
+        href: https://github.com/territorio-numic/carto-social
+        aria-label: "Repositorio en GitHub"
+  page-footer:
+    left: "Núcleo Milenio en Inseguridad y Cohesión Urbana (NUMIC · NCS2025_047)"
+    right: "Taller Preámbulo: Pensamiento Espacial, Data Wrangling y EDA en R"
+
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: darkly
+    lang: es
+    toc: true

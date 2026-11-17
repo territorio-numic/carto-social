@@ -1,0 +1,18 @@
+# Ignorar archivos temporales y cachés locales
+/*
+
+# Permitir exclusivamente los archivos del curso carto-social y su sitio compilado en docs/
+!/.gitignore
+!/README.md
+!/_quarto.yml
+!/index.qmd
+!/carto-social_report.qmd
+!/carto-social_slide.qmd
+!/docs/
+!/docs/**
+
+# Excluir archivos temporales dentro de docs/
+/docs/.quarto/
+
+/.quarto/
+**/*.quarto_ipynb

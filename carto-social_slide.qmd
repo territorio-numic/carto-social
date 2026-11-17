@@ -1,0 +1,445 @@
+---
+title: "Cartografías de lo social: introducción al análisis de datos espaciales en R"
+subtitle: "Pensamiento Espacial, Data Wrangling y Análisis Exploratorio (EDA) para Investigadores Sociales"
+author: "Cristóbal Ortiz-Vilches · Núcleo Milenio NUMIC"
+date: today
+format:
+  revealjs:
+    theme: [default, night]
+    slide-number: c/t
+    transition: slide
+    background-transition: fade
+    incremental: false
+    code-copy: true
+    code-line-numbers: true
+    scrollable: false
+    center: false
+    width: 1280
+    height: 720
+    margin: 0.04
+    min-scale: 0.2
+    max-scale: 2.0
+    footer: "Curso NUMIC: Cartografías de lo Social en R | <a href='carto-social_report.html' style='color:#f77f00;font-weight:bold;'>📘 Abrir Manual del Taller</a> · <a href='index.html' style='color:#93c5fd;'>Inicio</a>"
+execute:
+  echo: true
+  eval: false
+  warning: false
+  message: false
+---
+
+```{=html}
+<style>
+.reveal {
+  font-size: 26px !important;
+}
+.reveal .slides section {
+  padding-top: 0.15rem !important;
+}
+.reveal h1 {
+  font-size: 1.95em !important;
+  line-height: 1.15 !important;
+  margin-bottom: 0.35em !important;
+}
+.reveal h2 {
+  font-size: 1.32em !important;
+  line-height: 1.18 !important;
+  margin-bottom: 0.36em !important;
+  border-bottom: 2px solid rgba(247, 127, 0, 0.6);
+  padding-bottom: 0.15em;
+}
+.reveal h3 {
+  font-size: 1.05em !important;
+  margin-bottom: 0.24em !important;
+  color: #93c5fd !important;
+}
+.reveal p, .reveal li {
+  font-size: 0.85em !important;
+  line-height: 1.34 !important;
+  margin-bottom: 0.25em !important;
+}
+.reveal ul, .reveal ol {
+  margin-bottom: 0.35em !important;
+}
+.reveal table {
+  font-size: 0.75em !important;
+  margin: 0.35em auto !important;
+  width: 100% !important;
+}
+.reveal table th, .reveal table td {
+  padding: 0.32em 0.50em !important;
+  line-height: 1.25 !important;
+}
+.reveal div.sourceCode {
+  margin: 0.38em 0 !important;
+  border: 1px solid rgba(148, 163, 184, 0.35) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4) !important;
+}
+.reveal pre,
+.reveal pre.sourceCode {
+  width: 100% !important;
+  margin: 0 !important;
+  font-size: 0.80em !important;
+  line-height: 1.38 !important;
+}
+.reveal .columns pre,
+.reveal .columns pre.sourceCode {
+  font-size: 0.72em !important;
+}
+.reveal pre code,
+.reveal pre.sourceCode code {
+  font-size: 1em !important;
+  line-height: 1.38 !important;
+  max-height: 520px !important;
+  padding: 0.78em 0.98em !important;
+}
+.reveal .callout {
+  font-size: 0.84em !important;
+  margin-top: 0.38em !important;
+  margin-bottom: 0.38em !important;
+}
+.reveal .callout .callout-body {
+  padding: 0.4em 0.75em !important;
+}
+.takeaway-pill {
+  background: rgba(247, 127, 0, 0.14);
+  border-left: 4px solid #f77f00;
+  padding: 0.44em 0.85em;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.83em;
+  margin-top: 0.42em;
+}
+</style>
+```
+
+## Propósito y Enfoque del Taller
+
+::: {.columns}
+::: {.column width="54%"}
+### Del dato tabular al pensamiento espacial
+- Este taller introduce a investigadores sociales en el **pensamiento y análisis espacial** utilizando **R/RStudio**.
+- Aprovechamos la **georreferenciación de bases de datos tradicionales** (Censo 2024, registros municipales, indicadores urbanos) para comprender las geografías de:
+  1. **La desigualdad socioeconómica y habitacional**
+  2. **La inseguridad en el espacio público**
+  3. **La cohesión social y el entorno urbano**
+- Construiremos un flujo reproducible desde el **Data Wrangling y el EDA espacial** hasta **cartografías estáticas (`ggplot2`) e interactivas con tooltip (`mapgl`)**.
+:::
+
+::: {.column width="46%"}
+::: {.callout-tip}
+### Preámbulo de *Geovisor-IA*
+Antes de diseñar plataformas web automatizadas, todo investigador debe saber **qué hay dentro de sus polígonos**: cómo filtrar manzanas, cómo detectar **manzanas sin habitantes (`n_per == 0`)**, cómo corregir errores topológicos y cómo inspeccionar valores atípicos mediante **tooltips interactivos**.
+:::
+<p style="margin-top:0.8rem;">
+  <a href="carto-social_report.html" style="background:#f77f00;color:#fff;padding:11px 18px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block;font-size:0.85em;">📘 Ir al Manual con Código Desplegable y Mapas en Vivo</a>
+</p>
+:::
+:::
+
+---
+
+# Parte 1. Tipos de Datos y Procesos Espaciales {background-color="#0f172a"}
+
+Fundamentos según Rubén Fernández-Casal (*Estadística Espacial*, Cap. 2) aplicados a las Ciencias Sociales
+
+---
+
+## 1.1. Datos Vectoriales vs. Datos Ráster
+
+Siguiendo a **Fernández-Casal (Cap. 2, Sección 2.1)**, el universo de datos geográficos se divide en dos grandes modelos de representación:
+
+| Modelo | Definición Geométrica | Ejemplo en Investigación Social Urbana (Comuna de Santiago) | Paquete R |
+| :--- | :--- | :--- | :--- |
+| **Datos Vectoriales** | Emplean coordenadas exactas $(x, y)$ para definir vértices de **puntos, líneas y polígonos**. Cada objeto es una fila con atributos sociodemográficos. | **Las `1.711` manzanas censales**, los **`27` barrios de Santiago**, la red vial o la ubicación puntual de denuncias. | **`sf`** (*Simple Features*) |
+| **Datos Ráster** | Rejilla regular de celdas o píxeles (*data cubes*) que representa una **superficie continua** en el espacio. | Imágenes satelitales de **temperatura superficial (islas de calor)** o índice de vegetación (`NDVI`) resumido luego por manzana. | **`terra` / `stars`** |
+
+<div class="takeaway-pill">
+<strong>Foco del taller:</strong> En sociología urbana, ciencia política y demografía trabajamos primordialmente con <strong>datos vectoriales poligonales</strong> (manzanas, zonas censales, barrios y comunas) enriquecidos con indicadores provenientes de fuentes puntuales o satelitales.
+</div>
+
+---
+
+## 1.2. Taxonomía de los Procesos Espaciales (Fernández-Casal)
+
+Según las suposiciones sobre el **soporte o índice espacial $\mathbf{s} \in D$**, distinguimos tres tipos de procesos que suelen combinarse en un mismo estudio urbano:
+
+| Tipo de Proceso | Índice Espacial $D$ | ¿Qué observamos en la realidad social? | Aplicación en nuestro taller (Santiago `CUT 13101`) |
+| :--- | :--- | :--- | :--- |
+| **1. Procesos Reticulares o Regionales (*Areal / Lattice*)** | **Discreto y fijo** (polígonos administrativos o censales) | Conteos y tasas agregadas por área: población, escolaridad, hacinamiento, allegamiento, envejecimiento. | **Censo 2024 (`1.711` manzanas)** y **Subdivisión Municipal (`27` barrios)**. |
+| **2. Procesos Puntuales (*Point Patterns*)** | **Aleatorio** (coordenadas donde ocurre un evento) | Localización exacta de delitos en la vía pública, equipamiento comunitario o paradas de transporte. | **Exposición delictual (`dim_seg`)** agregada a la manzana por proximidad. |
+| **3. Procesos Geoestadísticos (*Continuous Fields*)** | **Continuo** en el plano $\mathbb{R}^2$ | Temperatura del aire, contaminación acústica o cobertura vegetal continua medida por sensores/satélites. | **Disconfort ambiental (`dim_amb`)** transferido al soporte de manzana. |
+
+<div class="takeaway-pill">
+<strong>El reto del Data Wrangling espacial:</strong> Gran parte del trabajo del investigador social consiste en <strong>armonizar soportes distintos</strong> (llevar puntos, grillas o catastros de veredas hacia los polígonos de manzana y barrio).
+</div>
+
+---
+
+# Parte 2. El Paquete `sf` y los Sistemas de Coordenadas (`CRS`) {background-color="#0f172a"}
+
+Cómo R almacena geometrías (`sfg` → `sfc` → `sf`) y por qué nunca debes confundir grados con metros
+
+---
+
+## 2.1. Anatomía de un Objeto `sf` (*Simple Features*, ISO 19125)
+
+En R, el paquete **`sf`** (Pebesma, 2018; Fernández-Casal, Cap. 2.2) extiende el `data.frame` o `tibble` tradicional añadiendo una columna especial de tipo lista (`sfc`) que guarda la geometría de cada fila:
+
+```r
+# Inspección de la estructura interna de un objeto sf (Manzanas de Santiago)
+library(sf)
+library(tidyverse)
+
+class(censo_stgo_utm)       # -> "sf" "tbl_df" "tbl" "data.frame"
+st_geometry(censo_stgo_utm) # -> Columna sfc_MULTIPOLYGON con CRS y Bounding Box
+```
+
+| Nivel Jerárquico en `sf` | ¿Qué representa? | Función clave en R |
+| :--- | :--- | :--- |
+| **1. `sfg` (*Simple Feature Geometry*)** | La geometría individual de **una sola fila** (`POINT`, `LINESTRING`, `POLYGON`, `MULTIPOLYGON`) escrita en formato *Well-Known Text* (`WKT`). | `st_point()`, `st_polygon()` |
+| **2. `sfc` (*Geometry List-Column*)** | La **columna completa de geometrías** de todas las filas, más el sistema de coordenadas (`CRS`) y la caja delimitadora (`bbox`). | `st_geometry(x)`, `st_sfc()` |
+| **3. `sf` (*Simple Feature Object*)** | La **tabla completa**: atributos estadísticos (`cod_mzn`, `n_per`, `prom_escolaridad18`) unidos a la columna `sfc`. | `st_read()`, `st_as_sf()`, `st_drop_geometry()` |
+
+---
+
+## 2.2. Sistemas de Referencia de Coordenadas (`CRS`): Geodésico vs. Proyectado
+
+Un error clásico al iniciar en análisis espacial es mezclar coordenadas angulares con métricas o usar `st_crs(x) <-` en lugar de `st_transform(x, crs)`:
+
+```r
+# 1. Leer archivo original (viene en coordenadas geográficas WGS84: EPSG:4326)
+censo_wgs84 <- st_as_sf(df_parquet, crs = 4326)
+
+# 2. REPROYECTAR matemáticamente a UTM Huso 19 Sur (EPSG:32719, en metros) para calcular áreas y distancias
+censo_utm19s <- st_transform(censo_wgs84, crs = 32719)
+
+# 3. Calcular área en hectáreas y densidad residencial (hab/ha) con precisión métrica
+censo_utm19s <- censo_utm19s |>
+  mutate(
+    area_ha      = as.numeric(st_area(shape)) / 10000,
+    densidad_mzn = if_else(area_ha > 0, n_per / area_ha, NA_real_)
+  )
+```
+
+<div class="takeaway-pill">
+<strong>Regla de oro (Fernández-Casal, Cap. 2.2.1):</strong> Usa <strong><code>EPSG:32719</code> (metros)</strong> para toda operación geométrica (áreas, distancias, buffers e intersecciones) y transforma con <code>st_transform(4326)</code> justo antes de renderizar un mapa web interactivo.
+</div>
+
+---
+
+# Parte 3. Data Wrangling Espacial: Selección y Filtrado de Polígonos {background-color="#0f172a"}
+
+Cómo seleccionar manzanas y barrios mediante atributos (`dplyr`) y predicados espaciales (`sf`)
+
+---
+
+## 3.1. Selección y Filtrado por Atributos (`dplyr` sobre objetos `sf`)
+
+Como un objeto `sf` es también un `data.frame`, acepta directamente los verbos de `dplyr` (`filter`, `select`, `mutate`, `group_by`, `summarise`), **conservando automáticamente la geometría de cada polígono**:
+
+```r
+# Ejemplo 1: Seleccionar únicamente las manzanas de tres barrios específicos de Santiago
+mzn_tres_barrios <- mzn_stgo_sf |>
+  filter(barrio %in% c("YUNGAY", "MATTA SUR", "PARQUE ALMAGRO"))
+
+# Ejemplo 2: Filtrar manzanas residenciales densas con alto déficit habitacional
+mzn_criticas_viv <- mzn_stgo_sf |>
+  filter(n_per >= 30, densidad_mzn > 250, pct_deficit_cuant >= 20) |>
+  select(cod_mzn, barrio, n_per, n_vp, densidad_mzn, pct_deficit_cuant)
+```
+
+<div class="takeaway-pill">
+<strong>Detalle clave al hacer <code>left_join()</code>:</strong> Como advierte Fernández-Casal (Cap. 2.2.2), el <strong>primer argumento</strong> del join debe ser siempre el objeto <code>sf</code> (<code>sf_obj |&gt; left_join(tabla_df, by = "cod_mzn")</code>) para que el resultado conserve la clase espacial.
+</div>
+
+---
+
+## 3.2. Filtrado Espacial por Geometría (`st_filter`, `st_crop` y `st_buffer`)
+
+¿Qué pasa si la base censal **no tiene** una columna con el nombre del barrio y queremos seleccionar las manzanas que caen dentro de un polígono, una caja o un radio en metros?
+
+```r
+# A. Filtrar manzanas que intersectan el polígono del Barrio Yungay (en EPSG:32719)
+poligono_yungay <- barrios_stgo_utm |> filter(BARRIO == "YUNGAY")
+mzn_en_yungay   <- censo_stgo_utm |> st_filter(y = poligono_yungay, .predicate = st_intersects)
+
+# B. Seleccionar manzanas en un radio (buffer) de 400 metros alrededor del Barrio Huemul
+buffer_huemul_400m <- barrios_stgo_utm |>
+  filter(BARRIO == "HUEMUL") |>
+  st_buffer(dist = 400)
+
+mzn_entorno_huemul <- censo_stgo_utm |> st_filter(y = buffer_huemul_400m, .predicate = st_intersects)
+```
+
+| Predicado Geométrico Binario (`sf`) | Pregunta Espacial que Responde |
+| :--- | :--- |
+| **`st_intersects(x, y)`** | ¿Qué polígonos de `x` tocan o se solapan en cualquier punto con `y`? |
+| **`st_within(x, y)`** | ¿Qué geometrías de `x` están **100% contenidas** dentro de `y`? |
+| **`st_touches(x, y)`** | ¿Qué manzanas o barrios son **vecinos colindantes** (comparten borde sin solaparse)? |
+
+---
+
+# Parte 4. Análisis Exploratorio Espacial (EDA) y Problemas Reales {background-color="#0f172a"}
+
+¿Qué anomalías debemos buscar cuando recién abrimos y visualizamos una base de datos espacial?
+
+---
+
+## 4.1. Problema 1: Manzanas sin Habitantes (`n_per == 0`, Ceros Estructurales)
+
+Al explorar las **`1.711` manzanas** del Censo 2024 en la comuna de Santiago, descubrimos un hecho fundamental: **¡`419` manzanas (`24,5%`) tienen `0` habitantes residentes (`n_per == 0`)!**
+
+```r
+# Diagnóstico exploratorio del poblamiento de las 1.711 manzanas de Santiago
+censo_stgo_utm |>
+  st_drop_geometry() |>
+  count(manzana_habitada = n_per > 0, name = "n_manzanas") |>
+  mutate(porcentaje = round(n_manzanas / sum(n_manzanas) * 100, 1))
+# -> TRUE (Habitadas): 1.292 manzanas (75,5%) | FALSE (Sin residentes): 419 manzanas (24,5%)
+```
+
+- **¿Por qué existen `419` manzanas con `n_per == 0`?** No son errores de medición: son **parques urbanos** (Parque O'Higgins, Quinta Normal, Cerro Santa Lucía), **manzanas institucionales** (La Moneda, ministerios, hospitales, campus universitarios) o **comercio/oficinas exclusivas** en el centro cívico.
+- **El peligro en el cálculo de tasas:** Si calculas `n_inmigrantes / n_per` sin filtrar `n_per > 0`, produces `NaN` (`0/0`); y si reemplazas `NA` por `0` en años de escolaridad (`prom_escolaridad18`), **hundes artificialmente el promedio de barrios con grandes parques o equipamientos**.
+
+---
+
+## 4.2. Problema 2: Inestabilidad de Tasas por Bajo Denominador y Outliers
+
+En el EDA espacial (Fernández-Casal, Cap. 2.5), antes de mapear un porcentaje debemos inspeccionar su distribución estadística y el tamaño de su denominador (`n_per`, `n_vp`, `n_hog`):
+
+```r
+# Detectar manzanas con micro-denominadores (1 a 4 viviendas) donde 1 caso = 25% a 100%
+mzn_stgo_sf |>
+  st_drop_geometry() |>
+  filter(n_vp > 0, n_vp < 5) |>
+  select(cod_mzn, barrio, n_per, n_vp, tasa_hacinamiento, pct_deficit_cuant)
+```
+
+- **Efecto visual en el mapa:** Una manzana industrial donde solo vive un cuidador (`1` hogar) con arriendo sin contrato marca **`100%`**, estirando la barra de colores y dejando al resto de la comuna de un solo tono pálido.
+- **Dos soluciones complementarias en el EDA:**
+  1. **Filtrado o suavizado de umbrales mínimos** al explorar rankings de manzanas extremas.
+  2. **Cortes cromáticos por percentiles (`P2–P50–P98`)** en lugar de `min–max` lineal, protegiendo el contraste visual del `96%` central de las manzanas.
+
+---
+
+## 4.3. Problema 3: Cruces Espaciales en Bordes de Avenida (`st_point_on_surface`)
+
+Cuando cruzamos dos capas oficiales distintas (ej. `1.711` manzanas INE vs. `27` barrios municipales IMS), **nunca debemos hacer `st_join()` polígono a polígono directamente**, porque una manzana que roza la línea divisoria de dos barrios se duplicará en la base:
+
+```r
+# 1. Reparar topologías inválidas (auto-intersecciones) antes de cualquier cruce
+barrios_stgo_utm <- barrios_stgo_utm |> st_make_valid()
+
+# 2. Garantizar un único punto interior por manzana (incluso en manzanas con forma de L o U)
+centroides_mzn <- st_point_on_surface(censo_stgo_utm |> select(cod_mzn))
+
+# 3. Cruce espacial 1-a-1 contra los 27 barrios + rescate de bordes por vecino más cercano
+join_barrios <- st_join(centroides_mzn, barrios_stgo_utm |> select(barrio = BARRIO), join = st_intersects)
+if (any(is.na(join_barrios$barrio))) {
+  idx_na <- which(is.na(join_barrios$barrio))
+  join_barrios$barrio[idx_na] <- barrios_stgo_utm$BARRIO[st_nearest_feature(centroides_mzn[idx_na, ], barrios_stgo_utm)]
+}
+```
+
+---
+
+# Parte 5. Cartografías Estáticas e Interactivas con Tooltip {background-color="#0f172a"}
+
+De la exploración rápida con `ggplot2::geom_sf()` a la inspección multicapa con Tooltip en `mapgl`
+
+---
+
+## 5.1. Cartografía Estática para Diagnóstico Rápido (`ggplot2::geom_sf`)
+
+Los mapas estáticos con `ggplot2::geom_sf()` son la primera herramienta del EDA para visualizar de un vistazo **dónde están las manzanas deshabitadas (`n_per == 0`)** o cómo se distribuye espacialmente una variable:
+
+```r
+# Mapa estático de diagnóstico: Manzanas habitadas vs. Ceros estructurales (n_per == 0)
+ggplot() +
+  geom_sf(data = mzn_stgo_sf, aes(fill = tipo_poblamiento), color = "white", linewidth = 0.08) +
+  geom_sf(data = barrios_stgo, fill = NA, color = "#0f172a", linewidth = 0.45) +
+  scale_fill_manual(
+    values = c("Habitada (n_per > 0)" = "#cbd5e1", "Sin habitantes (n_per == 0)" = "#e11d48"),
+    name   = "Diagnóstico Censal (EDA)"
+  ) +
+  labs(title = "Diagnóstico Espacial de Manzanas sin Habitantes en Santiago (Censo 2024)") +
+  theme_void()
+```
+
+<div class="takeaway-pill">
+<strong>Limitación del mapa estático en el EDA:</strong> Al ver una manzana roja en el mapa estático, el investigador se pregunta: <em>"¿Cuál es su código? ¿A qué barrio pertenece? ¿Tiene viviendas u oficinas? ¿Qué valor tienen sus variables vecinas?"</em>. Ahí entra el <strong>Tooltip Interactivo</strong>.
+</div>
+
+---
+
+## 5.2. El Tooltip Interactivo como Lupa de Exploración Espacial (`mapgl`)
+
+En lugar de saturar la pantalla con múltiples gráficos anexos, el **tooltip HTML** transforma el mapa interactivo en una **herramienta de auditoría micro-territorial** al pasar el cursor sobre cualquiera de las `1.711` manzanas:
+
+```r
+# Construcción del Tooltip HTML para auditar cada manzana frente a su Barrio y a Santiago
+mzn_mapa <- mzn_stgo_sf |>
+  mutate(
+    tooltip_html = paste0(
+      "<div style='font-family:system-ui;font-size:12px;padding:6px 8px;min-width:240px;'>",
+      "<strong>Barrio: ", barrio, "</strong><br>",
+      "Manzana: <strong>", cod_mzn, "</strong> | Condición: <strong>", estado_mzn, "</strong><br>",
+      "Población: <strong>", n_per, " hab.</strong> | Viviendas: <strong>", n_vp, "</strong> | Hogares: <strong>", n_hog, "</strong><br>",
+      "Densidad: <strong>", round(densidad_mzn, 1), " hab/ha</strong><hr style='margin:4px 0;'>",
+      "Indicador Principal: <strong>", round(valor_ind, 1), "%</strong><br>",
+      "Promedio Barrio (", str_to_title(barrio), "): <strong>", round(prom_barrio, 1), "%</strong> (", signo_b, " pp)<br>",
+      "Promedio Santiago: <strong>", round(prom_stgo, 1), "%</strong> (", signo_s, " pp)",
+      "</div>"
+    )
+  )
+```
+
+---
+
+## 5.3. Renderizado del Mapa Interactivo con Tooltip y Halo Barrial
+
+Una vez creado el atributo `tooltip_html`, ensamblamos en **`mapgl` (`maplibre`)** las tres capas esenciales de lectura urbana:
+
+```r
+maplibre(bounds = barrios_stgo, style = carto_style("positron")) |>
+  add_fill_layer(
+    id           = "manzanas_fill",
+    source       = mzn_mapa,
+    fill_color   = interpolate(column = "valor_ind", values = cortes_p, stops = paleta),
+    fill_opacity = 0.84,
+    tooltip      = "tooltip_html",
+    hover_options = list(fill_opacity = 0.98, fill_outline_color = "#111111")
+  ) |>
+  add_line_layer(id = "barrios_halo", source = barrios_stgo, line_color = "#ffffff", line_width = 2.6) |>
+  add_line_layer(id = "barrios_borde", source = barrios_stgo, line_color = "#1e293b", line_width = 1.3) |>
+  add_symbol_layer(
+    id = "barrios_nombres", source = barrios_stgo,
+    text_field = c("get", "BARRIO"), text_size = 9.8,
+    text_color = "#0f172a", text_halo_color = "#ffffff", text_halo_width = 1.5
+  )
+```
+
+---
+
+## Síntesis: Ruta de Trabajo del Investigador Espacial en R
+
+::: {.columns}
+::: {.column width="50%"}
+### Los 5 pasos aprendidos hoy (`carto-social`)
+1. **Identificar el soporte espacial** (Fernández-Casal, Cap. 2): distinguir polígonos regionales, puntos y campos continuos.
+2. **Estandarizar el `CRS` (`EPSG:32719`)**: medir áreas (`hab/ha`) y distancias en metros y validar topologías (`st_make_valid()`).
+3. **Seleccionar y filtrar polígonos**: combinar `dplyr::filter()` con predicados geométricos (`st_filter`, `st_intersects`, `st_buffer`).
+4. **Diagnosticar anomalías en el EDA**: separar manzanas sin habitantes (`n_per == 0`) de manzanas habitadas antes de promediar.
+5. **Mapear con propósito**: mapas estáticos (`geom_sf`) + visores interactivos con **tooltip multicapa** (`mapgl`).
+:::
+
+::: {.column width="50%"}
+::: {.callout-note}
+### Próximo Paso: *Geovisor-IA*
+Una vez dominados el *Data Wrangling* y el *EDA espacial* en este taller, estás listo/a para el segundo curso: [**Geovisor-IA**](https://territorio-numic.github.io/geovisor-ia/), donde integramos estos mapas con gráficos interactivos, tablas de ranking y *Prompt Engineering* avanzado.
+:::
+<p style="margin-top:0.85rem;">
+  <a href="carto-social_report.html" style="background:#f77f00;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block;font-size:0.86em;">📘 Explorar el Manual Práctico Completo (`carto-social_report`)</a>
+</p>
+:::
+:::
